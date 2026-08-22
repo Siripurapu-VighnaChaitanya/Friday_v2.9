@@ -21,99 +21,99 @@ PENDING_CODE_DATA = None
 # ================== LANGUAGE MESSAGES ==================
 MESSAGES = {
     "open_app": {
-        "en": "Opening {app}",
-        "te": "{app} ఓపెన్ చేస్తున్నాను",
-        "hi": "{app} खोल रहा हूँ"
+        "en": "Opening {app}, sir.",
+        "te": "{app} ఓపెన్ చేస్తున్నాను సార్.",
+        "hi": "{app} खोल रहा हूँ सर।"
     },
     "close_app": {
-        "en": "Closing {app}",
-        "te": "{app} మూసేస్తున్నాను",
-        "hi": "{app} बंद कर रहा हूँ"
+        "en": "Closing {app}, sir.",
+        "te": "{app} మూసేస్తున్నాను సార్.",
+        "hi": "{app} बंद कर रहा हूँ सर।"
     },
     "app_not_found": {
-        "en": "I could not find that application",
-        "te": "ఆ యాప్ నాకు కనిపించలేదు",
-        "hi": "मुझे वह ऐप नहीं मिला"
+        "en": "I could not find that application, sir.",
+        "te": "ఆ యాప్ నాకు కనిపించలేదు సార్.",
+        "hi": "मुझे वह ऐप नहीं मिला सर।"
     },
     "time": {
-        "en": "The time is {value}",
-        "te": "ఇప్పుడు సమయం {value}",
-        "hi": "अभी समय {value} है"
+        "en": "The time is {value}, sir.",
+        "te": "ఇప్పుడు సమయం {value}, సార్.",
+        "hi": "अभी समय {value} है सर।"
     },
     "date": {
-        "en": "Today's date is {value}",
-        "te": "ఈ రోజు తేదీ {value}",
-        "hi": "आज की तारीख {value} है"
+        "en": "Today's date is {value}, sir.",
+        "te": "ఈ రోజు తేదీ {value}, సార్.",
+        "hi": "आज की तारीख {value} है सर।"
     },
     "day": {
-        "en": "Today is {value}",
-        "te": "ఈ రోజు {value}",
-        "hi": "आज {value} है"
+        "en": "Today is {value}, sir.",
+        "te": "ఈ రోజు {value}, సార్.",
+        "hi": "आज {value} है सर।"
     },
     "screenshot": {
-        "en": "Screenshot taken",
-        "te": "స్క్రీన్ షాట్ తీసాను",
-        "hi": "स्क्रीनशॉट लिया गया"
+        "en": "Screenshot taken, sir.",
+        "te": "స్క్రీన్ షాట్ తీసాను సార్.",
+        "hi": "स्क्रीनशॉट लिया गया सर।"
     },
     "wifi_on": {
-        "en": "WiFi turned on",
-        "te": "వైఫై ఆన్ చేశాను",
-        "hi": "वाईफाई चालू कर दिया"
+        "en": "WiFi turned on, sir.",
+        "te": "వైఫై ఆన్ చేశాను సార్.",
+        "hi": "वाईफाई चालू कर दिया सर।"
     },
     "wifi_off": {
-        "en": "WiFi turned off",
-        "te": "వైఫై ఆఫ్ చేశాను",
-        "hi": "वाईफाई बंद कर दिया"
+        "en": "WiFi turned off, sir.",
+        "te": "వైఫై ఆఫ్ చేశాను సార్.",
+        "hi": "वाईफाई बंद कर दिया सर।"
     },
     "bluetooth": {
-        "en": "Opening Bluetooth settings",
-        "te": "బ్లూటూత్ సెట్టింగ్స్ ఓపెన్ చేస్తున్నాను",
-        "hi": "ब्लूटूथ सेटिंग्स खोल रहा हूँ"
+        "en": "Opening Bluetooth settings, sir.",
+        "te": "బ్లూటూత్ సెట్టింగ్స్ ఓపెన్ చేస్తున్నాను సార్.",
+        "hi": "ब्लूटूथ सेटिंग्स खोल रहा हूँ सर।"
     },
     "hotspot": {
-        "en": "Opening Hotspot settings",
-        "te": "హాట్‌స్పాట్ సెట్టింగ్స్ ఓపెన్ చేస్తున్నాను",
-        "hi": "हॉटस्पॉट सेटिंग्स खोल रहा हूँ"
+        "en": "Opening Hotspot settings, sir.",
+        "te": "హాట్‌స్పాట్ సెట్టింగ్స్ ఓపెన్ చేస్తున్నాను సార్.",
+        "hi": "हॉटस्पॉट सेटिंग्स खोल रहा हूँ सर।"
     },
     "volume_set": {
-        "en": "Volume set to {value} percent",
-        "te": "వాల్యూమ్ {value} శాతానికి సెట్ చేశాను",
-        "hi": "वॉल्यूम {value} प्रतिशत पर सेट किया"
+        "en": "Volume set to {value} percent, sir.",
+        "te": "వాల్యూమ్ {value} శాతానికి సెట్ చేశాను సార్.",
+        "hi": "वॉल्यूम {value} प्रतिशत पर सेट किया सर।"
     },
     "volume_up": {
-        "en": "Volume increased",
-        "te": "వాల్యూమ్ పెంచాను",
-        "hi": "वॉल्यूम बढ़ा दिया"
+        "en": "Volume increased, sir.",
+        "te": "వాల్యూమ్ పెంచాను సార్.",
+        "hi": "वॉल्यूम बढ़ा दिया सर।"
     },
     "volume_down": {
-        "en": "Volume decreased",
-        "te": "వాల్యూమ్ తగ్గించాను",
-        "hi": "वॉल्यूम कम कर दिया"
+        "en": "Volume decreased, sir.",
+        "te": "వాల్యూమ్ తగ్గించాను సార్.",
+        "hi": "वॉल्यूम कम कर दिया सर।"
     },
     "confirm": {
-        "en": "Are you sure?",
-        "te": "మీకు ఖచ్చితంగా కావాలా?",
-        "hi": "क्या आप निश्चित हैं?"
+        "en": "Are you sure, sir?",
+        "te": "మీకు ఖచ్చితంగా కావాలా సార్?",
+        "hi": "क्या आप निश्चित हैं सर?"
     },
     "cancel": {
-        "en": "Cancelled",
-        "te": "రద్దు చేశాను",
-        "hi": "रद्द कर दिया"
+        "en": "Cancelled, sir.",
+        "te": "రద్దు చేశాను సార్.",
+        "hi": "रद्द कर दिया सर।"
     },
     "ask_language": {
-        "en": "In which programming language should I write this code?",
-        "te": "ఈ కోడ్ ఏ ప్రోగ్రామింగ్ భాషలో వ్రాయాలి?",
-        "hi": "यह कोड किस प्रोग्रामिंग भाषा में लिखा जाना चाहिए?"
+        "en": "In which programming language should I write this code, sir?",
+        "te": "ఈ కోడ్ ఏ ప్రోగ్రామింగ్ భాషలో వ్రాయాలి సార్?",
+        "hi": "यह कोड किस प्रोग्रामिंग भाषा में लिखा जाना चाहिए सर?"
     },
     "creator": {
-        "en": "I was created by Chaitanya.",
-        "te": "నన్ను చైతన్య సృష్టించారు.",
-        "hi": "मुझे चैतन्य ने बनाया है।"
+        "en": "I was created by Chaitanya, sir.",
+        "te": "నన్ను చైతన్య సృష్టించారు సార్.",
+        "hi": "मुझे चैतन्य ने बनाया है सर।"
     },
     "identity": {
-        "en": "I am Friday, an advanced male artificial intelligence voice assistant.",
-        "te": "నేను ఫ్రైడే, ఒక అడ్వాన్స్‌డ్ పురుష ఆర్టిఫిషియల్ ఇంటెలిజెన్స్ వాయిస్ అసిస్టెంట్‌ని.",
-        "hi": "मैं फ्राइडे हूँ, एक उन्नत पुरुष आर्टिफिशियल इंटेलिजेंस वॉयस असिस्टेंट।"
+        "en": "I am Friday, an advanced male artificial intelligence voice assistant, sir.",
+        "te": "నేను ఫ్రైడే, ఒక అడ్వాన్స్‌డ్ పురుష ఆర్టిఫిషియల్ ఇంటెలిజెన్స్ వాయిస్ అసిస్టెంట్‌ని సార్.",
+        "hi": "मैं फ्राइडे हूँ, एक उन्नत पुरुष आर्टिफिशियल इंटेलिजेंस वॉयस असिस्टेंट सर।"
     }
 }
 

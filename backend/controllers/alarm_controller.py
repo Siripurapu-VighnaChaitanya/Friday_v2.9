@@ -140,7 +140,7 @@ def set_windows_alarm(target_time_str):
         time.sleep(1.0) # Wait a second for the app to finish saving the alarm
         pyautogui.hotkey('alt', 'f4')
         
-        return f"I have set an alarm for {hour}:{minute} {ampm}."
+        return f"I have set an alarm for {hour}:{minute} {ampm}, sir."
         
     except pyautogui.FailSafeException:
         # User moved mouse to corner to abort

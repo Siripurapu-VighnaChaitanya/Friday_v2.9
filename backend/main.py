@@ -89,16 +89,16 @@ def main_loop():
                 reset_wake_lock()
                 continue
                 
-            speak("Access granted.")
+            speak("Access granted, sir.")
             # Added a small delay after "Access granted" to clear audio buffer
             time.sleep(0.4)
 
             LANGUAGE = choose_language()
             ACTIVE = True
             ready_msg = {
-                "en": "I am ready. You can speak now.",
-                "te": "నేను సిద్ధంగా ఉన్నాను. మీరు ఇప్పుడు మాట్లాడవచ్చు.",
-                "hi": "मैं तैयार हूँ। आप अभी बोल सकते हैं।"
+                "en": "I am ready, sir. You can speak now.",
+                "te": "నేను సిద్ధంగా ఉన్నాను సార్. మీరు ఇప్పుడు మాట్లాడవచ్చు.",
+                "hi": "मैं तैयार हूँ सर। आप अभी बोल सकते हैं।"
             }
             speak(ready_msg.get(LANGUAGE, ready_msg["en"]), LANGUAGE)
             continue
@@ -124,9 +124,9 @@ def main_loop():
             offline_engine.PENDING_CODE_DATA = None
             
             ack = {
-                "en": "Got it. I'm listening again.",
-                "te": "సరే, నేను మళ్ళీ వింటున్నాను.",
-                "hi": "ठीक है, मैं फिर से सुन रहा हूँ।"
+                "en": "Got it, sir. I'm listening again.",
+                "te": "సరే సార్, నేను మళ్ళీ వింటున్నాను.",
+                "hi": "ठीक है सर, मैं फिर से सुन रहा हूँ।"
             }
             speak(ack.get(LANGUAGE, ack["en"]), LANGUAGE)
             continue
@@ -146,9 +146,9 @@ def main_loop():
             offline_engine.PENDING_CODE_DATA = None
             
             sleep_msg = {
-                "en": "Going back to sleep. Say hello friday to wake me up.",
-                "te": "నిద్రపోతున్నాను. మళ్ళీ నన్ను లేపాలంటే హలో ఫ్రైడే అని పిలవండి.",
-                "hi": "सो रहा हूँ। मुझे जगाने के लिए हेलो फ्राइडे कहें।"
+                "en": "Going back to sleep, sir. Say hello friday to wake me up.",
+                "te": "నిద్రపోతున్నాను సార్. మళ్ళీ నన్ను లేపాలంటే హలో ఫ్రైడే అని పిలవండి.",
+                "hi": "सो रहा हूँ सर। मुझे जगाने के लिए हेलो फ्राइडे कहें।"
             }
             speak(sleep_msg.get(LANGUAGE, sleep_msg["en"]), LANGUAGE)
             wait_for_speech()
