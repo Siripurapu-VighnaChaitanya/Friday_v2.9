@@ -2,7 +2,7 @@ import webbrowser
 import pyautogui
 import pygetwindow as gw
 import time
-import os
+import subprocess
 from utils.firebase_util import get_db
 
 # ================== DB ACCESS ==================
@@ -14,15 +14,12 @@ def get_contact_number(name):
     Handles possessives (e.g., "mom's" -> "mom").
     """
     try:
-        # 1. Clean name (remove 's, 's, etc.)
-        clean_name = name.lower().replace("'s", "").replace("'s", "").strip()
-        
+        clean_name = name.lower().replace("'s", "").replace("\u2019s", "").strip()
         contacts_ref = db.collection('contacts')
         docs = contacts_ref.stream()
         for doc in docs:
             data = doc.to_dict()
             stored_name = data.get('name', '').lower().strip()
-            # 2. Check for exact or partial match
             if clean_name == stored_name or stored_name in clean_name or clean_name in stored_name:
                 return data.get('phone')
         return None
@@ -30,38 +27,52 @@ def get_contact_number(name):
         print(f"❌ Firebase Contact Error: {e}")
         return None
 
+
+def _focus_whatsapp():
+    """Bring WhatsApp window to front if it's open."""
+    time.sleep(1.5)
+    wins = gw.getWindowsWithTitle('WhatsApp')
+    if wins:
+        win = wins[0]
+        try:
+            if win.isMinimized:
+                win.restore()
+            win.activate()
+            time.sleep(0.8)
+            return win
+        except Exception:
+            pass
+    return None
+
+
 def send_whatsapp_message(name, message):
     """
-    Opens WhatsApp chat for the contact and types the message.
+    Opens WhatsApp chat for the contact and sends the message.
     """
     phone = get_contact_number(name)
     if not phone:
-        # If name not found, check if 'name' is already a phone number
-        if name.isdigit() and len(name) >= 10:
+        if name.replace("+", "").replace(" ", "").isdigit() and len(name) >= 10:
             phone = name
         else:
-            return f"Contact {name} not found."
+            return f"Contact {name} not found in your contacts, sir."
 
-    url = f"whatsapp://send?phone={phone}&text={message}"
+    # Deep-link opens the chat with the message pre-filled
+    import urllib.parse
+    encoded = urllib.parse.quote(message)
+    url = f"whatsapp://send?phone={phone}&text={encoded}"
     webbrowser.open(url)
-    time.sleep(4)  # Wait for app to open and load chat
-    
-    # Focus and Send
-    windows = gw.getWindowsWithTitle('WhatsApp')
-    if windows:
-        win = windows[0]
-        try:
-            if win.isMinimized: win.restore()
-            win.activate()
-            time.sleep(1)
-            pyautogui.press('enter')
-            return f"Message sent to {name}."
-        except:
-            pass
-            
-    # Fallback press if window detection is weird
+    time.sleep(5)
+
+    win = _focus_whatsapp()
+    if win:
+        pyautogui.press('enter')
+        time.sleep(0.5)
+        return f"Message sent to {name}, sir."
+
+    # Fallback: just press enter wherever
     pyautogui.press('enter')
-    return f"Message sent to {name}."
+    return f"Message sent to {name}, sir."
+
 
 def add_contact_to_db(name, phone):
     """
@@ -69,107 +80,95 @@ def add_contact_to_db(name, phone):
     """
     try:
         contacts_ref = db.collection('contacts')
-        
-        # Add the contact
         data = {
             "name": name.lower().strip(),
             "phone": phone.strip()
         }
         contacts_ref.add(data)
-        return f"Successfully saved {name} with number {phone} to your contacts."
+        return f"Successfully saved {name} with number {phone} to your contacts, sir."
     except Exception as e:
         return f"Error saving contact: {e}"
 
+
 def make_whatsapp_call(name, video=False):
     """
-    Opens chat and uses hotkeys to start a call.
+    Initiates a WhatsApp voice or video call using deep-link URIs.
+    Primary method: whatsapp://call or whatsapp://videocall URI
+    Fallback: open chat then use keyboard shortcut Ctrl+Shift+C/V
     """
     phone = get_contact_number(name)
     if not phone:
-        if name.isdigit() and len(name) >= 10:
+        if name.replace("+", "").replace(" ", "").isdigit() and len(name) >= 10:
             phone = name
         else:
-            return f"Contact {name} not found."
+            return f"Contact {name} not found in your contacts, sir."
 
-    # Open chat
-    print(f"DEBUG: Opening WhatsApp URI for {name} ({phone})")
-    webbrowser.open(f"whatsapp://send?phone={phone}")
-    time.sleep(6) # Give it plenty of time to load the chat
+    call_type = "video" if video else "audio"
+    print(f"[WhatsApp] Initiating {call_type} call to {name} ({phone})...")
 
-    # Focus window
-    print("DEBUG: Searching for WhatsApp window...")
-    all_whatsapp_windows = [w for w in gw.getWindowsWithTitle('WhatsApp')]
-    
-    target_win = None
-    for win in all_whatsapp_windows:
-        if win.title == "WhatsApp" or "WhatsApp" in win.title:
-            target_win = win
-            break
+    # ---- STRATEGY 1: Direct WhatsApp call URI ----
+    # These URIs directly open WhatsApp and initiate the call dialog
+    if video:
+        call_uri = f"whatsapp://videocall?phone={phone}"
+    else:
+        call_uri = f"whatsapp://call?phone={phone}"
 
-    if target_win:
-        print(f"DEBUG: Found window: {target_win.title}")
-        try:
-            if target_win.isMinimized:
-                target_win.restore()
-            
-            target_win.activate()
-            time.sleep(1.0)
-            
-            # --- STEP 1: OPEN CHAT ---
-            # Ensure we are in the chat first
-            webbrowser.open(f"whatsapp://send?phone={phone}")
-            time.sleep(6) # Give it plenty of time to load
-            
-            # --- STEP 2: FOCUS AND OPEN MENU ---
-            target_win.activate()
-            time.sleep(1.0)
-            
-            # Click the "Call" button in the header
-            # Based on your screenshot, it's roughly 180-200px from the right
-            win_right = target_win.left + target_win.width
-            header_y = target_win.top + 50
-            call_btn_x = win_right - 190
-            
-            print(f"DEBUG: Clicking Call Menu button at {call_btn_x}, {header_y}")
-            pyautogui.click(call_btn_x, header_y)
-            time.sleep(1.5) # Wait for menu to pop up
-            
-            # --- STEP 3: SELECT VOICE/VIDEO ---
-            if video:
-                # Video is usually to the right of Voice in the menu
-                pyautogui.press('right')
-                time.sleep(0.5)
-                pyautogui.press('enter')
-            else:
-                # Voice is usually highlighted by default
-                pyautogui.press('enter')
-                
-            # --- STEP 4: HOTKEY BACKUP ---
-            time.sleep(1.0)
-            pyautogui.hotkey('ctrl', 'shift', 'c' if not video else 'v')
-                
-            return f"Call sequence completed for {name}."
-        except Exception as e:
-            print(f"DEBUG: Call Error: {e}")
-            return f"Error: {e}"
-        except Exception as e:
-            print(f"DEBUG: Call Error: {e}")
-            return f"Error during call attempt: {e}"
-            
-    return "WhatsApp window not found. Please make sure the desktop app is open."
+    try:
+        webbrowser.open(call_uri)
+        time.sleep(5)  # Give WhatsApp time to open and load call screen
+
+        # Try to focus and confirm any "Allow" dialog if it appears
+        win = _focus_whatsapp()
+        if win:
+            # Press Enter to confirm any permission dialog
+            pyautogui.press('enter')
+            time.sleep(0.5)
+            return f"{'Video' if video else 'Voice'} call started with {name}, sir."
+        
+        return f"{'Video' if video else 'Voice'} call initiated with {name}, sir."
+
+    except Exception as e:
+        print(f"[WhatsApp] URI call error: {e}")
+
+    # ---- STRATEGY 2: Open chat then use keyboard shortcut ----
+    print("[WhatsApp] Falling back to keyboard shortcut method...")
+    try:
+        webbrowser.open(f"whatsapp://send?phone={phone}")
+        time.sleep(6)
+
+        win = _focus_whatsapp()
+        if not win:
+            return "WhatsApp window not found. Please make sure the desktop app is open, sir."
+
+        # Keyboard shortcut: Ctrl+Shift+C for voice, Ctrl+Shift+V for video
+        if video:
+            pyautogui.hotkey('ctrl', 'shift', 'v')
+        else:
+            pyautogui.hotkey('ctrl', 'shift', 'c')
+
+        time.sleep(1.5)
+        return f"{'Video' if video else 'Voice'} call shortcut sent to {name}, sir."
+
+    except Exception as e:
+        print(f"[WhatsApp] Keyboard fallback error: {e}")
+        return f"Sorry sir, I could not start the call. Error: {e}"
+
 
 def reject_call():
     """
-    Finds WhatsApp window and presses the reject button (hotkey/image).
+    Finds WhatsApp window and rejects the incoming call.
     """
     windows = gw.getWindowsWithTitle('WhatsApp')
     if windows:
-        windows[0].activate()
-        # For Desktop app, 'Esc' often rejects or ends an incoming call UI if focused
-        pyautogui.press('esc')
-        return "Attempting to reject call."
-    return "WhatsApp window not found."
+        try:
+            windows[0].activate()
+            time.sleep(0.5)
+            pyautogui.press('esc')
+            return "Attempting to reject the call, sir."
+        except Exception as e:
+            return f"Error rejecting call: {e}"
+    return "WhatsApp window not found, sir."
+
 
 if __name__ == "__main__":
-    # Test
     print(get_contact_number("test"))
