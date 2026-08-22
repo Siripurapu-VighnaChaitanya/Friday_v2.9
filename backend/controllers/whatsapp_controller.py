@@ -92,9 +92,10 @@ def add_contact_to_db(name, phone):
 
 def make_whatsapp_call(name, video=False):
     """
-    Initiates a WhatsApp voice or video call using deep-link URIs.
-    Primary method: whatsapp://call or whatsapp://videocall URI
-    Fallback: open chat then use keyboard shortcut Ctrl+Shift+C/V
+    Initiates a WhatsApp voice or video call on the Windows Desktop app.
+    Method: Open the chat via whatsapp://send, then use official keyboard shortcuts.
+    Ctrl+Shift+C = Voice Call, Ctrl+Shift+V = Video Call (WhatsApp Desktop).
+    Note: whatsapp://call URI only works on mobile, NOT on Windows Desktop app.
     """
     phone = get_contact_number(name)
     if not phone:
@@ -103,55 +104,47 @@ def make_whatsapp_call(name, video=False):
         else:
             return f"Contact {name} not found in your contacts, sir."
 
-    call_type = "video" if video else "audio"
+    call_type = "video" if video else "voice"
     print(f"[WhatsApp] Initiating {call_type} call to {name} ({phone})...")
 
-    # ---- STRATEGY 1: Direct WhatsApp call URI ----
-    # These URIs directly open WhatsApp and initiate the call dialog
-    if video:
-        call_uri = f"whatsapp://videocall?phone={phone}"
-    else:
-        call_uri = f"whatsapp://call?phone={phone}"
-
     try:
-        webbrowser.open(call_uri)
-        time.sleep(5)  # Give WhatsApp time to open and load call screen
-
-        # Try to focus and confirm any "Allow" dialog if it appears
-        win = _focus_whatsapp()
-        if win:
-            # Press Enter to confirm any permission dialog
-            pyautogui.press('enter')
-            time.sleep(0.5)
-            return f"{'Video' if video else 'Voice'} call started with {name}, sir."
-        
-        return f"{'Video' if video else 'Voice'} call initiated with {name}, sir."
-
-    except Exception as e:
-        print(f"[WhatsApp] URI call error: {e}")
-
-    # ---- STRATEGY 2: Open chat then use keyboard shortcut ----
-    print("[WhatsApp] Falling back to keyboard shortcut method...")
-    try:
+        # Step 1: Open the contact's chat using the whatsapp://send URI
         webbrowser.open(f"whatsapp://send?phone={phone}")
-        time.sleep(6)
+        time.sleep(5)   # Give WhatsApp Desktop time to load the chat
 
+        # Step 2: Focus WhatsApp window
         win = _focus_whatsapp()
         if not win:
-            return "WhatsApp window not found. Please make sure the desktop app is open, sir."
+            # Try once more — sometimes takes longer to bring to front
+            time.sleep(2)
+            win = _focus_whatsapp()
+        
+        if not win:
+            return "WhatsApp window not found. Please make sure the desktop app is installed and open, sir."
 
-        # Keyboard shortcut: Ctrl+Shift+C for voice, Ctrl+Shift+V for video
+        # Step 3: Make sure the window is actually in focus
+        win.activate()
+        time.sleep(1.0)
+
+        # Step 4: Fire the keyboard shortcut
+        # WhatsApp Desktop official shortcuts:
+        #   Ctrl+Shift+C  → Voice call
+        #   Ctrl+Shift+V  → Video call
         if video:
+            print("[WhatsApp] Pressing Ctrl+Shift+V for video call...")
             pyautogui.hotkey('ctrl', 'shift', 'v')
         else:
+            print("[WhatsApp] Pressing Ctrl+Shift+C for voice call...")
             pyautogui.hotkey('ctrl', 'shift', 'c')
 
-        time.sleep(1.5)
-        return f"{'Video' if video else 'Voice'} call shortcut sent to {name}, sir."
+        time.sleep(1.0)
+        return f"{'Video' if video else 'Voice'} call started with {name}, sir."
 
     except Exception as e:
-        print(f"[WhatsApp] Keyboard fallback error: {e}")
+        print(f"[WhatsApp] Call error: {e}")
         return f"Sorry sir, I could not start the call. Error: {e}"
+
+
 
 
 def reject_call():
