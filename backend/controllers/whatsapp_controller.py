@@ -5,16 +5,10 @@ import ctypes
 import time
 from utils.firebase_util import get_db
 
-# ---- DPI SCALING FIX ----
-# pygetwindow returns LOGICAL pixel coords (at 96DPI baseline)
-# pyautogui works in PHYSICAL pixels
-# e.g. 125% DPI scaling → physical = logical × 1.25
+# NOTE: On this system pygetwindow and pyautogui BOTH use physical pixels.
+# No scaling conversion is needed — use coordinates directly.
 _dpi = ctypes.windll.user32.GetDpiForSystem()
-_DPI_SCALE = _dpi / 96.0
-
-def _lp(px):
-    """Convert logical pixel value to physical pixel for pyautogui."""
-    return int(px * _DPI_SCALE)
+_DPI_SCALE = _dpi / 96.0  # Kept for logging only
 
 # ================== DB ACCESS ==================
 db = get_db()
@@ -147,32 +141,38 @@ def make_whatsapp_call(name, video=False):
         if wins_now:
             win = wins_now[0]
 
-        # Convert logical coords → physical pixels for pyautogui
-        # (pygetwindow uses logical, pyautogui uses physical)
-        phys_right  = _lp(win.left + win.width)
-        phys_top    = _lp(win.top)
-        phys_cx     = _lp(win.left + win.width // 2)
-        phys_cy     = _lp(win.top  + win.height // 2)
+        # pygetwindow returns physical pixels on this system — use directly (no scaling)
+        win_right = win.left + win.width
+        win_top   = win.top
+        win_cx    = win.left + win.width // 2
+        win_cy    = win.top  + win.height // 2
 
-        # Header Y — WhatsApp header bar midpoint
-        header_y = phys_top + _lp(37)
+        # WhatsApp Desktop window layout (physical pixels from window top):
+        #   0–32px   : Windows title bar (draggable area)
+        #   32–95px  : WhatsApp own header / navigation bar
+        #   After 95px: Chat area starts, with the contact header at the very top
+        # The contact header ("Amma" + call buttons) midpoint ≈ win_top + 67
+        header_y = win_top + 67
 
-        # Step 5: Click chat body to give the window keyboard focus
-        pyautogui.click(phys_cx, phys_cy)
+        # Step 5: Click chat body to ensure the window has keyboard focus
+        pyautogui.click(win_cx, win_cy)
         time.sleep(0.5)
 
-        # Step 6: Click the call icon in the header (top-right)
-        # Offsets from right edge in LOGICAL pixels (WhatsApp Desktop):
-        #   ⋮ menu ≈ 20px | search ≈ 50px | voice ≈ 82px | video ≈ 115px
+        # Step 6: Click the call icon in the contact header (top-right of chat panel)
+        # Button offsets from right edge of window (physical pixels):
+        #   ⋮ menu   ≈ 25px from right
+        #   search   ≈ 65px from right
+        #   voice ☎  ≈ 105px from right
+        #   video 📷 ≈ 145px from right
         if video:
-            btn_x = phys_right - _lp(115)
-            print(f"[WhatsApp] Clicking VIDEO call at ({btn_x}, {header_y})  [DPI={_DPI_SCALE}x]")
+            btn_x = win_right - 145
+            print(f"[WhatsApp] Clicking VIDEO call at ({btn_x}, {header_y})")
         else:
-            btn_x = phys_right - _lp(82)
-            print(f"[WhatsApp] Clicking VOICE call at ({btn_x}, {header_y})  [DPI={_DPI_SCALE}x]")
+            btn_x = win_right - 105
+            print(f"[WhatsApp] Clicking VOICE call at ({btn_x}, {header_y})")
 
-        pyautogui.moveTo(btn_x, header_y, duration=0.4)
-        time.sleep(0.3)
+        pyautogui.moveTo(btn_x, header_y, duration=0.5)  # slow move so you can see where it lands
+        time.sleep(0.4)
         pyautogui.click(btn_x, header_y)
         time.sleep(1.0)
 
