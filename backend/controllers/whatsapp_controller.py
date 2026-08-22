@@ -93,9 +93,8 @@ def add_contact_to_db(name, phone):
 def make_whatsapp_call(name, video=False):
     """
     Initiates a WhatsApp voice or video call on the Windows Desktop app.
-    Method: Open the chat via whatsapp://send, then use official keyboard shortcuts.
-    Ctrl+Shift+C = Voice Call, Ctrl+Shift+V = Video Call (WhatsApp Desktop).
-    Note: whatsapp://call URI only works on mobile, NOT on Windows Desktop app.
+    Approach: Open chat via whatsapp://send, then click the call/video button
+    directly at its header position. Keyboard shortcut used as last fallback.
     """
     phone = get_contact_number(name)
     if not phone:
@@ -108,36 +107,54 @@ def make_whatsapp_call(name, video=False):
     print(f"[WhatsApp] Initiating {call_type} call to {name} ({phone})...")
 
     try:
-        # Step 1: Open the contact's chat using the whatsapp://send URI
+        # Step 1: Open the contact's chat
         webbrowser.open(f"whatsapp://send?phone={phone}")
-        time.sleep(5)   # Give WhatsApp Desktop time to load the chat
+        time.sleep(6)   # Wait for WhatsApp Desktop to load the chat fully
 
-        # Step 2: Focus WhatsApp window
+        # Step 2: Focus the WhatsApp window
         win = _focus_whatsapp()
         if not win:
-            # Try once more — sometimes takes longer to bring to front
             time.sleep(2)
             win = _focus_whatsapp()
-        
         if not win:
             return "WhatsApp window not found. Please make sure the desktop app is installed and open, sir."
 
-        # Step 3: Make sure the window is actually in focus
+        # Step 3: Make sure window is in the foreground
         win.activate()
         time.sleep(1.0)
 
-        # Step 4: Fire the keyboard shortcut
-        # WhatsApp Desktop official shortcuts:
-        #   Ctrl+Shift+C  → Voice call
-        #   Ctrl+Shift+V  → Video call
+        # Step 4: Click somewhere safe in the chat body first (ensures window focus)
+        # Click centre of the window to land in the message area
+        center_x = win.left + win.width // 2
+        center_y = win.top + win.height // 2
+        pyautogui.click(center_x, center_y)
+        time.sleep(0.4)
+
+        # Step 5: Click the call / video button in the header
+        # WhatsApp Desktop header is ~59px tall.
+        # Buttons are top-right, counted from right edge:
+        #   • Voice call icon ≈ 130px from right
+        #   • Video call icon ≈ 90px from right
+        header_y = win.top + 30           # vertical centre of the header bar
+        right_edge = win.left + win.width
+
         if video:
-            print("[WhatsApp] Pressing Ctrl+Shift+V for video call...")
+            btn_x = right_edge - 90       # Video call button
+            print(f"[WhatsApp] Clicking video call button at ({btn_x}, {header_y})")
+        else:
+            btn_x = right_edge - 130      # Voice call button
+            print(f"[WhatsApp] Clicking voice call button at ({btn_x}, {header_y})")
+
+        pyautogui.click(btn_x, header_y)
+        time.sleep(1.0)
+
+        # Step 6: Keyboard shortcut as backup (some WhatsApp Desktop versions need this)
+        if video:
             pyautogui.hotkey('ctrl', 'shift', 'v')
         else:
-            print("[WhatsApp] Pressing Ctrl+Shift+C for voice call...")
             pyautogui.hotkey('ctrl', 'shift', 'c')
 
-        time.sleep(1.0)
+        time.sleep(0.5)
         return f"{'Video' if video else 'Voice'} call started with {name}, sir."
 
     except Exception as e:
