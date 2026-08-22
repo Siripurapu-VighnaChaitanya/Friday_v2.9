@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Friday AI — Command Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #050a12;
+      --surface: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --blue: #4facfe;
+      --green: #43e97b;
+      --cyan: #00f2fe;
+      --teal: #38f9d7;
+      --text: rgba(255, 255, 255, 0.9);
+      --muted: rgba(255, 255, 255, 0.45);
+      --tag-en: rgba(79, 172, 254, 0.15);
+      --tag-te: rgba(67, 233, 123, 0.15);
+      --tag-hi: rgba(56, 249, 215, 0.15);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; line-height: 1.6; }
+
+    .hero { background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(79, 172, 254, 0.18),transparent); padding:60px 40px 48px; text-align:center; border-bottom:1px solid var(--border); }
+    .hero-badge { display:inline-flex; align-items:center; gap:8px; background:var(--tag-en); border:1px solid rgba(79, 172, 254, 0.3); border-radius:99px; padding:6px 16px; font-size:0.72rem; font-weight:600; letter-spacing:2px; color:var(--blue); text-transform:uppercase; margin-bottom:20px; font-family: 'Orbitron', sans-serif; }
+    .hero h1 { font-size:clamp(2rem,5vw,3.4rem); font-weight:700; letter-spacing:-1px; background:linear-gradient(135deg,var(--blue),var(--green)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:12px; font-family: 'Orbitron', sans-serif; }
+    .hero p { color:var(--muted); font-size:1.05rem; max-width:560px; margin:0 auto 28px; }
+    .lang-pills { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+    .lang-pill { display:flex; align-items:center; gap:6px; padding:7px 18px; border-radius:99px; font-size:0.82rem; font-weight:500; border:1px solid; }
+    .lang-pill.en { background:var(--tag-en); border-color:rgba(79, 172, 254,0.3); color:var(--blue); }
+    .lang-pill.te { background:var(--tag-te); border-color:rgba(67, 233, 123,0.3); color:var(--green); }
+    .lang-pill.hi { background:var(--tag-hi); border-color:rgba(56, 249, 215,0.3); color:var(--teal); }
+
+    nav { position:sticky; top:0; z-index:100; background:rgba(5, 10, 18, 0.85); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); padding:0 32px; display:flex; gap:4px; overflow-x:auto; }
+    nav a { display:inline-block; padding:14px 16px; color:var(--muted); text-decoration:none; font-size:0.82rem; font-weight:500; white-space:nowrap; border-bottom:2px solid transparent; transition:all 0.2s; }
+    nav a:hover { color:var(--text); border-color:var(--blue); }
+
+    .container { max-width:1100px; margin:0 auto; padding:40px 24px 80px; }
+    .section { margin-bottom:56px; }
+    .section-header { display:flex; align-items:center; gap:14px; margin-bottom:24px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+    .section-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; }
+    .section-icon.blue   { background:rgba(79, 172, 254, 0.12); }
+    .section-icon.green  { background:rgba(67, 233, 123, 0.12); }
+    .section-icon.teal   { background:rgba(56, 249, 215, 0.12); }
+    .section-icon.yellow { background:rgba(255, 220, 80, 0.12); }
+    .section-icon.red    { background:rgba(255, 100, 100, 0.12); }
+    .section-icon.purple { background:rgba(168, 100, 255, 0.12); }
+    .section-header h2 { font-size:1.3rem; font-weight:600; font-family: 'Orbitron', sans-serif; letter-spacing: 0.5px; }
+    .section-header p  { color:var(--muted); font-size:0.85rem; margin-top:2px; }
+
+    .commands-grid { display:flex; flex-direction:column; gap:18px; }
+    .cmd-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px 24px; transition:border-color 0.2s,transform 0.2s; }
+    .cmd-card:hover { border-color:rgba(79, 172, 254, 0.3); transform:translateY(-1px); }
+    .cmd-card-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; justify-content: space-between; flex-wrap: wrap; }
+    .cmd-label { font-size:0.72rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; padding:3px 10px; border-radius:99px; font-family: 'Orbitron', sans-serif; }
+    .cmd-label.blue  { background:var(--tag-en); color:var(--blue); }
+    .cmd-label.green { background:var(--tag-te); color:var(--green); }
+    .cmd-label.teal  { background:var(--tag-hi); color:var(--teal); }
+    .cmd-desc { color:var(--muted); font-size:0.82rem; }
+    .cmd-rows { display:flex; flex-direction:column; gap:10px; }
+    .cmd-row  { display:grid; grid-template-columns:60px 1fr; gap:10px; align-items:start; }
+    .lang-tag { font-size:0.68rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:6px; text-align:center; margin-top:3px; width:fit-content; }
+    .lang-tag.en { background:var(--tag-en); color:var(--blue); }
+    .lang-tag.te { background:var(--tag-te); color:var(--green); }
+    .lang-tag.hi { background:var(--tag-hi); color:var(--teal); }
+    .cmd-examples { display:flex; flex-wrap:wrap; gap:8px; }
+    .cmd-ex { display:inline-block; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.08); border-radius:8px; padding:5px 12px; font-size:0.85rem; color:var(--text); font-family: monospace; }
+    .cmd-ex em { color:var(--blue); font-style:normal; font-weight: bold; }
+    .note { background:rgba(255, 220, 80, 0.07); border:1px solid rgba(255, 220, 80, 0.2); border-radius:10px; padding:12px 16px; font-size:0.82rem; color:rgba(255, 220, 80, 0.9); margin-top:12px; }
+    .note strong { color:rgb(255, 220, 80); }
+    .step-list { display:flex; flex-direction:column; gap:10px; }
+    .step { display:flex; gap:14px; align-items:flex-start; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; }
+    .step-num { min-width:28px; height:28px; background:linear-gradient(135deg,var(--blue),var(--cyan)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.78rem; font-weight:700; color:#05080f; flex-shrink:0; }
+    .step-body h4 { font-size:0.92rem; font-weight:600; margin-bottom:4px; }
+    .step-body p  { font-size:0.82rem; color:var(--muted); }
+
+    .tbl { width:100%; border-collapse:collapse; font-size:0.87rem; background:var(--surface); border-radius:14px; overflow:hidden; }
+    .tbl th { text-align:left; padding:12px 16px; color:var(--muted); font-weight:500; border-bottom:1px solid var(--border); background: rgba(255, 255, 255, 0.02); }
+    .tbl td { padding:10px 16px; border-bottom:1px solid rgba(255, 255, 255, 0.04); }
+    .tbl tr:last-child td { border-bottom:none; }
+    .tbl .ok  { color:var(--green); text-align:center; }
+    .tbl .no  { color:var(--muted); text-align:center; }
+    .sub-label { color:var(--muted); font-size:0.82rem; margin-bottom:12px; margin-top:24px; letter-spacing:1px; text-transform:uppercase; font-weight:600; font-family: 'Orbitron', sans-serif; }
+
+    footer { text-align:center; padding:32px; border-top:1px solid var(--border); color:var(--muted); font-size:0.82rem; font-family: monospace; }
+    @media(max-width:600px){ .cmd-row{grid-template-columns:50px 1fr;} .hero{padding:40px 20px 36px;} }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">🤖 Friday v2.7 &middot; Built by Chaitanya</div>
+  <h1>Friday Command Guide</h1>
+  <p>Complete official voice command reference for English, Telugu, and Hindi.</p>
+  <div class="lang-pills">
+    <span class="lang-pill en">🇬🇧 English</span>
+    <span class="lang-pill te">🇮🇳 Telugu (తెలుగు)</span>
+    <span class="lang-pill hi">🇮🇳 Hindi (हिंदी)</span>
+  </div>
+</div>
+
+<nav>
+  <a href="#startup">Startup</a>
+  <a href="#stop">Stop / Control</a>
+  <a href="#identity">Identity</a>
+  <a href="#datetime">Time &amp; Date</a>
+  <a href="#apps">Apps</a>
+  <a href="#websites">Websites</a>
+  <a href="#system">System</a>
+  <a href="#internet">Internet</a>
+  <a href="#whatsapp">WhatsApp</a>
+  <a href="#vision">Vision</a>
+  <a href="#code">Code</a>
+  <a href="#sleep">Sleep</a>
+</nav>
+
+<div class="container">
+
+<!-- STARTUP -->
+<div class="section" id="startup">
+  <div class="section-header">
+    <div class="section-icon blue">🚀</div>
+    <div><h2>Startup Sequence</h2><p>How to boot and authenticate Friday each session</p></div>
+  </div>
+  <div class="step-list">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Run the program</h4>
+        <p>Open your command line/terminal and execute the following command in the virtual environment:</p>
+        <div style="margin-top:8px;"><span class="cmd-ex">python main.py</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Say the wake word</h4>
+        <p>Speak clearly to trigger wake word detection (monitored by the background listener):</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <span class="cmd-ex">hello friday</span><span class="cmd-ex">hi friday</span><span class="cmd-ex">hey friday</span><span class="cmd-ex">ok friday</span><span class="cmd-ex">friday</span>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Say the security code (0010)</h4>
+        <p>Authenticate yourself by speaking the correct passcode when Friday prompts you:</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <span class="cmd-ex">0010</span><span class="cmd-ex">zero zero one zero</span><span class="cmd-ex">double zero one zero</span><span class="cmd-ex">001</span>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h4>Choose your voice language</h4>
+        <p>State one of the supported languages when prompted by Friday:</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <span class="cmd-ex">english</span><span class="cmd-ex">telugu</span><span class="cmd-ex">hindi</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><strong>Security Authentication Note:</strong> The security code verification is active. You have 3 attempts to speak the correct passcode (0010) before Friday locks and returns to sleep mode.</div>
+</div>
+
+<!-- STOP -->
+<div class="section" id="stop">
+  <div class="section-header">
+    <div class="section-icon red">🛑</div>
+    <div><h2>Speech Control &amp; Cancels</h2><p>Trigger words to immediately halt speaking or cancel commands</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Hard Stop</span><span class="cmd-desc">Immediately interrupts and stops Friday's speech feedback</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">stop speaking</span><span class="cmd-ex">stop talking</span><span class="cmd-ex">please stop</span><span class="cmd-ex">just stop</span><span class="cmd-ex">okay stop</span><span class="cmd-ex">that's enough</span><span class="cmd-ex">thats enough</span><span class="cmd-ex">enough now</span><span class="cmd-ex">shut up</span><span class="cmd-ex">be quiet</span><span class="cmd-ex">quiet please</span><span class="cmd-ex">hush</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex">ఆపు ఆపు</span><span class="cmd-ex">మాట్లాడటం ఆపు</span><span class="cmd-ex">చాలు ఆపు</span><span class="cmd-ex">ఆపండి</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex">बोलना बंद करो</span><span class="cmd-ex">बंद करो</span><span class="cmd-ex">चुप रहो</span><span class="cmd-ex">बस बस</span><span class="cmd-ex">रोक दो</span>
+        </div></div>
+      </div>
+      <div class="note"><strong>Note:</strong> Stop commands are phrase-based to prevent accidental speech triggers during conversational requests that contain the word "stop".</div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Soft Cancel</span><span class="cmd-desc">Aborts current processing and opens voice loop for a new request</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">sorry</span><span class="cmd-ex">cancel</span><span class="cmd-ex">my mistake</span><span class="cmd-ex">that's wrong</span><span class="cmd-ex">ignore that</span><span class="cmd-ex">forget it</span><span class="cmd-ex">never mind</span><span class="cmd-ex">nevermind</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex">క్షమించండి</span><span class="cmd-ex">తప్పు</span><span class="cmd-ex">క్యాన్సల్</span><span class="cmd-ex">వద్దు</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex">माफ करना</span><span class="cmd-ex">गलती</span><span class="cmd-ex">कैंसिल</span><span class="cmd-ex">छोड़ो</span>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label teal">Confirmations</span><span class="cmd-desc">Replies when Friday asks "Are you sure?" before closing apps or switching settings</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">yes</span><span class="cmd-ex">yeah</span><span class="cmd-ex">yep</span><span class="cmd-ex">sure</span><span class="cmd-ex">ok</span><span class="cmd-ex">okay</span>&nbsp;|&nbsp;<span class="cmd-ex">no</span><span class="cmd-ex">nope</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex">అవును</span><span class="cmd-ex">సరే</span>&nbsp;|&nbsp;<span class="cmd-ex">కాదు</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex">हाँ</span><span class="cmd-ex">ठीक</span><span class="cmd-ex">ठीक है</span>&nbsp;|&nbsp;<span class="cmd-ex">नहीं</span>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IDENTITY -->
+<div class="section" id="identity">
+  <div class="section-header">
+    <div class="section-icon blue">👤</div>
+    <div><h2>Identity Questions</h2><p>Offline checks for Friday's core status and creation details</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Who Are You</span><span class="cmd-desc">Answers with Friday's name and role description</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">who are you</span><span class="cmd-ex">what are you</span><span class="cmd-ex">what is your name</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">నీవు ఎవరివి</span><span class="cmd-ex">నువ్వు ఎవరు</span><span class="cmd-ex">నీ పేరు ఏమిటి</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">तुम कौन हो</span><span class="cmd-ex">आप कौन हैं</span><span class="cmd-ex">तुम्हारा नाम क्या है</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Who Built You</span><span class="cmd-desc">Acknowledges Friday's creator</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">who invented you</span><span class="cmd-ex">who discovered you</span><span class="cmd-ex">who created you</span><span class="cmd-ex">who made you</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">నిన్ను ఎవరు కనిపెట్టారు</span><span class="cmd-ex">నిన్ను ఎవరు సృష్టించారు</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">तुम्हें किसने बनाया</span><span class="cmd-ex">तुम्हें किसने खोजा</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIME & DATE -->
+<div class="section" id="datetime">
+  <div class="section-header">
+    <div class="section-icon yellow">📅</div>
+    <div><h2>Time &amp; Date Operations</h2><p>Local time, calendar date, weekdays, and clock alarms</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Current Time</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">what time is it</span><span class="cmd-ex">tell me the time</span><span class="cmd-ex">time</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">సమయం</span><span class="cmd-ex">టైమ్</span><span class="cmd-ex">టైం</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">समय</span><span class="cmd-ex">क्या समय हुआ है</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Today's Date</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">what is today's date</span><span class="cmd-ex">what is the date</span><span class="cmd-ex">date</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">తేదీ</span><span class="cmd-ex">ఈ రోజు తేదీ ఎంత</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">तारीख</span><span class="cmd-ex">आज क्या तारीख है</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label teal">Day of the Week</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">what day is it today</span><span class="cmd-ex">what day</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">ఏ వారం</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">कौन सा दिन</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Set Windows Alarm</span><span class="cmd-desc">Automatically automates the native Windows Clock app</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">set alarm for <em>7:00 AM</em></span><span class="cmd-ex">wake me up at <em>6:30 AM</em></span><span class="cmd-ex">set an alarm at <em>9 PM</em></span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex">అలారం పెట్టు <em>7</em> గంటలకు</span><span class="cmd-ex">ఉదయం <em>6:30</em> కి నన్ను లేపు</span><span class="cmd-ex">రాత్రి <em>9</em> గంటలకి అలారం పెట్టు</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex">अलार्म लगाओ <em>7</em> बजे</span><span class="cmd-ex">सुबह <em>6:30</em> बजे जगाओ</span><span class="cmd-ex">रात <em>9</em> बजे अलार्म सेट करो</span>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPS -->
+<div class="section" id="apps">
+  <div class="section-header">
+    <div class="section-icon green">📱</div>
+    <div><h2>Open &amp; Close Local Applications</h2><p>Manage system applications and Start Menu programs via voice shortcuts</p></div>
+  </div>
+
+  <p class="sub-label">⚙️ Supported System Applications &amp; Aliases</p>
+  <div style="overflow-x:auto;margin-bottom:24px;">
+    <table class="tbl">
+      <thead><tr>
+        <th>Application (Accepts as name)</th>
+        <th>Accepted Multilingual Aliases</th>
+        <th style="text-align:center">Open Command</th>
+        <th style="text-align:center">Close Command</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><span class="cmd-ex">chrome</span></td><td><code>క్రోమ్</code> &middot; <code>क्रोम</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">whatsapp</span></td><td><code>వాట్సాప్</code> &middot; <code>व्हाट्सएप</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">notepad</span></td><td><code>నోట్ప్యాడ్</code> &middot; <code>नोटपैड</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">calculator</span></td><td><code>క్యాలిక్యులేటర్</code> &middot; <code>कैलकुलेटर</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">camera</span></td><td><code>కెమెరా</code> &middot; <code>कैमरा</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">file explorer</span></td><td><code>file manager</code> &middot; <code>explorer</code> &middot; <code>ఫైల్ మేనేజర్</code> &middot; <code>फाइल मैनेजर</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">task manager</span></td><td><code>taskmanager</code> &middot; <code>taskmgr</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">settings</span></td><td><code>ms-settings</code></td><td class="ok">✓</td><td class="no">—</td></tr>
+        <tr><td><span class="cmd-ex">word</span></td><td><code>ms word</code> &middot; <code>winword</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">excel</span></td><td><code>ms excel</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">powerpoint</span></td><td><code>ms powerpoint</code></td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><span class="cmd-ex">visual studio code</span></td><td><code>vs code</code> &middot; <code>vscode</code> &middot; <code>visual code</code></td><td class="ok">✓</td><td class="no">—</td></tr>
+        <tr><td><span class="cmd-ex">copilot</span></td><td><code>co pilot</code> &middot; <code>ko pilot</code></td><td class="ok">✓</td><td class="no">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note" style="margin-bottom:20px;"><strong>Fuzzy Start Menu Matching:</strong> Besides the built-in system shortcuts, Friday indexes your entire Windows Start Menu on launch. You can open any program (e.g. <em>VLC, Spotify, Steam, Zoom, Telegram</em>) by name, and Friday's fuzzy search will automatically find and start the closest match.</div>
+
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Open App</span><span class="cmd-desc">Starts command word followed by application name</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">open <em>chrome</em></span><span class="cmd-ex">open <em>file explorer</em></span><span class="cmd-ex">open <em>vs code</em></span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex">ఓపెన్ <em>వాట్సాప్</em></span><span class="cmd-ex">ఓపెన్ <em>నోట్ప్యాడ్</em></span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex"><em>क्रोम</em> खोलो</span><span class="cmd-ex"><em>कैलकुलेटर</em> खोलो</span>
+        </div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Close App</span><span class="cmd-desc">Shuts down application process (triggers verification safety prompt first)</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">close <em>chrome</em></span><span class="cmd-ex">close <em>notepad</em></span><span class="cmd-ex">close <em>word</em></span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex">క్లోజ్ <em>వాట్సాప్</em></span><span class="cmd-ex">క్లోజ్ <em>ఎక్స్ప్లోరర్</em></span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex"><em>व्हाट्सएप</em> बंद करो</span><span class="cmd-ex"><em>क्रोम</em> बंद करो</span>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WEBSITES -->
+<div class="section" id="websites">
+  <div class="section-header">
+    <div class="section-icon teal">🌐</div>
+    <div><h2>Websites &amp; Browser Queries</h2><p>Search the web and manage browser tabs in Google Chrome</p></div>
+  </div>
+
+  <p class="sub-label">🔗 Built-in URL Shortcuts</p>
+  <div style="overflow-x:auto;margin-bottom:20px;">
+    <table class="tbl">
+      <thead><tr><th>Keyword Name</th><th>Opens URL</th></tr></thead>
+      <tbody>
+        <tr><td><code>youtube</code></td><td>https://www.youtube.com</td></tr>
+        <tr><td><code>google</code></td><td>https://www.google.com</td></tr>
+        <tr><td><code>gmail</code></td><td>https://mail.google.com</td></tr>
+        <tr><td><code>facebook</code></td><td>https://www.facebook.com</td></tr>
+        <tr><td><code>instagram</code></td><td>https://www.instagram.com</td></tr>
+        <tr><td><code>twitter</code></td><td>https://www.twitter.com</td></tr>
+        <tr><td><code>github</code></td><td>https://www.github.com</td></tr>
+        <tr><td><code>stackoverflow</code></td><td>https://www.stackoverflow.com</td></tr>
+        <tr><td><code>linkedin</code></td><td>https://www.linkedin.com</td></tr>
+        <tr><td><code>whatsapp</code></td><td>https://web.whatsapp.com</td></tr>
+        <tr><td><code>openai</code></td><td>https://www.openai.com</td></tr>
+        <tr><td><code>chatgpt</code></td><td>https://chat.openai.com</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note" style="margin-bottom:20px;"><strong>Arbitrary Domains:</strong> You can open any standard domain by saying it in full (e.g. "open <em>netflix.com</em> website" or "open <em>amazon.in</em> website"). The suffix keyword <code>website/వెబ్‌సైట్/वेबसाइट</code> must be included at the end of the query to differentiate browser routing.</div>
+
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Open Website</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">open <em>youtube</em> website</span><span class="cmd-ex">open <em>github</em> website</span><span class="cmd-ex">open <em>wikipedia.org</em> website</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">ఓపెన్ <em>గూగుల్</em> వెబ్‌సైట్</span><span class="cmd-ex">ఓపెన్ <em>వాట్సాప్</em> వెబ్సైట్</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex"><em>जीमेल</em> वेबसाइट खोलो</span><span class="cmd-ex"><em>यूट्यूब</em> वेबसाइट खोलो</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Close Website Tab</span><span class="cmd-desc">Cycles Chrome tabs to find the specified target and closes it (triggers verification)</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">close <em>youtube</em> website</span><span class="cmd-ex">close <em>github</em> website</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">క్లోజ్ <em>గూగుల్</em> వెబ్‌సైట్</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex"><em>यूट्यूब</em> वेबसाइट बंद करो</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label teal">Google Web Search</span><span class="cmd-desc">Forces Google search in Chrome browser</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">search for <em>latest movies</em></span><span class="cmd-ex">google <em>how to learn code</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">సెర్చ్ చేయి <em>ఈనాటి వార్తలు</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">गूगल पर सर्च करो <em>आज का तापमान</em></span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM -->
+<div class="section" id="system">
+  <div class="section-header">
+    <div class="section-icon purple">🛠️</div>
+    <div><h2>System Administration</h2><p>Direct commands to configure hardware features locally</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">WiFi Control</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">wifi on</span><span class="cmd-ex">wifi off</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">వైఫై ఆన్ చేయి</span><span class="cmd-ex">వైఫై ఆఫ్ చేయి</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">वाईफाई चालू करो</span><span class="cmd-ex">वाईफाई बंद करो</span></div></div>
+      </div>
+      <div class="note"><strong>Safety Lock:</strong> Turning WiFi <strong>OFF</strong> triggers a confirmation prompt to prevent accidentally dropping your active connection. WiFi ON executes immediately.</div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Bluetooth &amp; Mobile Hotspot</span><span class="cmd-desc">Directly launches Windows settings pages</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">bluetooth</span><span class="cmd-ex">hotspot</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">బ్లూటూత్</span><span class="cmd-ex">హాట్‌స్పాట్</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">ब्लूटूथ</span><span class="cmd-ex">हॉटस्पॉट</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label teal">Master Volume Adjustment</span><span class="cmd-desc">Alters Windows speaker volume interface</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">set volume to <em>50</em> percent</span><span class="cmd-ex">volume <em>70</em> percent</span><span class="cmd-ex">increase volume</span><span class="cmd-ex">decrease volume</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">వాల్యూమ్ <em>80</em> శాతానికి పెట్టు</span><span class="cmd-ex">వాల్యూమ్ పెంచు</span><span class="cmd-ex">వాల్యూమ్ తగ్గించు</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">वॉल्यूम <em>40</em> प्रतिशत करो</span><span class="cmd-ex">आवाज़ बढ़ाओ</span><span class="cmd-ex">आवाज़ कम करो</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Desktop Screenshot</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">take a screenshot</span><span class="cmd-ex">screenshot</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">స్క్రీన్ షాట్ తీయి</span><span class="cmd-ex">స్క్రీన్ షాట్</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">स्क्रीनशॉट लो</span><span class="cmd-ex">स्क्रीनशॉट</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Hardware System Metrics</span><span class="cmd-desc">Reports local hardware diagnostics</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">system status</span><span class="cmd-ex">how is my CPU</span><span class="cmd-ex">check battery</span><span class="cmd-ex">RAM usage</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INTERNET -->
+<div class="section" id="internet">
+  <div class="section-header">
+    <div class="section-icon teal">🌍</div>
+    <div><h2>Global Information Feeds</h2><p>Online API lookups for weather, headlines, navigations, and currencies</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Live Weather Lookup</span><span class="cmd-desc">Uses WeatherAPI</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">weather in <em>Hyderabad</em></span><span class="cmd-ex">what's the weather in <em>Guntur</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex"><em>గుంటూరు</em> లో వాతావరణం ఎలా ఉంది</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex"><em>दिल्ली</em> में मौसम कैसा है</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Top News Headlines</span><span class="cmd-desc">Grabs top 3 headlines from NewsAPI</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">technology news</span><span class="cmd-ex">sports news</span><span class="cmd-ex">business news</span><span class="cmd-ex">science news</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">క్రీడా వార్తలు పంపు</span><span class="cmd-ex">వ్యాపార వార్తలు</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">समाचार सुनाओ</span><span class="cmd-ex">टेक्नोलॉजी न्यूज़</span></div></div>
+      </div>
+      <div class="note">Available Categories: <strong>business &middot; entertainment &middot; general &middot; health &middot; science &middot; sports &middot; technology</strong></div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label teal">Maps &amp; Coordinates</span><span class="cmd-desc">Pinpoints places via Nominatim geocoding and loads Google Maps</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">show <em>Guntur</em> on map</span><span class="cmd-ex">navigate to <em>Charminar</em></span><span class="cmd-ex">find <em>nearest hotel</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">మ్యాప్స్ లో <em>గుంటూరు</em> చూపించు</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">नक्शे पर <em>ताजमहल</em> दिखाओ</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Currency Conversion Rates</span><span class="cmd-desc">Live calculation rates powered by CurrencyAPI</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">convert <em>50 USD to INR</em></span><span class="cmd-ex">how much is <em>100 EUR in rupees</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex"><em>50 డాలర్లను</em> రూపాయల్లోకి మార్చు</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex"><em>100 यूरो</em> को रुपये में बदलो</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP -->
+<div class="section" id="whatsapp">
+  <div class="section-header">
+    <div class="section-icon green">💬</div>
+    <div><h2>WhatsApp &amp; Contact Integration</h2><p>Store database contacts and place messaging calls automatically via Firebase</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Save Contact</span><span class="cmd-desc">Saves contact name and phone number to the Firebase database</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">save contact <em>Mom</em> with number <em>9876543210</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">వాట్సాప్ కాంటాక్ట్ సేవ్ చేయి <em>చైతన్య</em> నెంబర్ <em>9876543210</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">नया नंबर सेव करो <em>राहुल</em> नंबर <em>9876543210</em></span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Send WhatsApp Text</span><span class="cmd-desc">Automatically routes chat and triggers text send</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">send whatsapp message to <em>Mom</em> saying <em>I will be late</em></span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex"><em>చైతన్య</em> కి వాట్సాప్ మెసేజ్ పంపు <em>నేను బయలుదేరాను</em> అని</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex"><em>राहुल</em> को व्हाट्सएप संदेश भेजो <em>हेलो कैसे हो</em></span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label teal">Place Voice/Video Call</span><span class="cmd-desc">Opens chat and uses header macro button coordinates to start a call</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">call <em>Mom</em> on whatsapp</span><span class="cmd-ex">whatsapp video call to <em>Mom</em></span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex"><em>చైతన్య</em> కి వాట్సాప్ కాల్ చేయి</span><span class="cmd-ex"><em>చైతన్య</em> కి వాట్సాప్ వీడియో కాల్ చేయి</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex"><em>राहुल</em> को व्हाट्सएप कॉल करो</span><span class="cmd-ex"><em>राहुल</em> को व्हाट्सएप वीडियो कॉल करो</span>
+        </div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Reject/Decline Incoming Call</span><span class="cmd-desc">Triggers Windows focus controls to cancel incoming ring UI</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">reject whatsapp call</span><span class="cmd-ex">decline call</span><span class="cmd-ex">hang up</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">వాట్సాప్ కాల్ కట్ చేయి</span><span class="cmd-ex">రిజెక్ట్ కాల్</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">कॉल कट करो</span><span class="cmd-ex">व्हाट्सएप कॉल रिजेक्ट करो</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VISION -->
+<div class="section" id="vision">
+  <div class="section-header">
+    <div class="section-icon blue">👁️</div>
+    <div><h2>Computer Vision &amp; OCR</h2><p>Use local AI modeling to describe your active screen or read temporary clipboard slots</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Describe Active Screen</span><span class="cmd-desc">Captures a screen grab and runs it through local Ollama Moondream modeling</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">what is on my screen</span><span class="cmd-ex">describe my screen</span><span class="cmd-ex">what do you see</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">నా స్క్రీన్ మీద ఏముంది</span><span class="cmd-ex">నా స్క్రీన్ ని వివరించు</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">मेरी स्क्रीन पर क्या है</span><span class="cmd-ex">मेरी स्क्रीन का वर्णन करो</span></div></div>
+      </div>
+    </div>
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label green">Read System Clipboard</span><span class="cmd-desc">Extracts text copied to your local clipboard</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">read my clipboard</span><span class="cmd-ex">what is in my clipboard</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">క్లిప్‌బోర్డ్ చదువు</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">क्लिपबोर्ड में क्या है</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CODE -->
+<div class="section" id="code">
+  <div class="section-header">
+    <div class="section-icon yellow">💻</div>
+    <div><h2>Interactive Code Generation</h2><p>Prompts for language selection and outputs formatted PDF code sheets directly to your Desktop</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Request Programming Task</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples">
+          <span class="cmd-ex">write code to <em>sort a list</em></span><span class="cmd-ex">generate code for <em>fibonacci series</em></span><span class="cmd-ex">create a <em>login form in HTML</em></span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples">
+          <span class="cmd-ex"><em>బిగ్ బుబుల్ సార్ట్</em> కోడ్ రాయండి</span><span class="cmd-ex"><em>ఫిబొనాచీ సిరీస్</em> కోసం కోడ్ తయారు చేయి</span>
+        </div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples">
+          <span class="cmd-ex"><em>लिस्ट सॉर्ट करने</em> के लिए कोड लिखो</span><span class="cmd-ex"><em>फाइबोनैचि श्रृंखला</em> का कोड बनाओ</span>
+        </div></div>
+      </div>
+      <div class="note">
+        <strong>Flow Sequence:</strong> Once you request a code task, Friday will speak back and ask: <br/>
+        &bull; <code>In which programming language should I write this code?</code> (English)<br/>
+        &bull; <code>ఈ కోడ్ ఏ ప్రోగ్రామింగ్ భాషలో వ్రాయాలి?</code> (Telugu)<br/>
+        &bull; <code>यह कोड किस प्रोग्रामिंग भाषा में लिखा जाना चाहिए?</code> (Hindi)<br/>
+        <br/>
+        Respond with one of: <strong>python / java / javascript / cpp / c / php / html</strong>.
+        Friday will output a compiled sheet titled <code>FridayCode_[language]_[timestamp].pdf</code> on your Windows <strong>Desktop</strong>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLEEP -->
+<div class="section" id="sleep">
+  <div class="section-header">
+    <div class="section-icon red">💤</div>
+    <div><h2>Deactivate &amp; Sleep</h2><p>Closes active processing session and shifts back into background wake-word listening loop</p></div>
+  </div>
+  <div class="commands-grid">
+    <div class="cmd-card">
+      <div class="cmd-card-header"><span class="cmd-label blue">Go to Sleep</span></div>
+      <div class="cmd-rows">
+        <div class="cmd-row"><span class="lang-tag en">EN</span><div class="cmd-examples"><span class="cmd-ex">go to sleep</span><span class="cmd-ex">goodbye friday</span><span class="cmd-ex">good night friday</span><span class="cmd-ex">sleep now</span><span class="cmd-ex">exit</span></div></div>
+        <div class="cmd-row"><span class="lang-tag te">TE</span><div class="cmd-examples"><span class="cmd-ex">వెళ్ళు</span><span class="cmd-ex">నిద్ర</span><span class="cmd-ex">గుడ్ నైట్</span></div></div>
+        <div class="cmd-row"><span class="lang-tag hi">HI</span><div class="cmd-examples"><span class="cmd-ex">सो जाओ</span><span class="cmd-ex">गुड नाइट</span></div></div>
+      </div>
+      <div class="note">After Friday deactivates, speak <strong>"hello friday"</strong> to boot up the assistant again.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+<footer>Friday v2.7 &middot; Built by Chaitanya &middot; Powered by Groq llama-3.1-70b-versatile &middot; &copy; 2026</footer>
+</body>
+</html>

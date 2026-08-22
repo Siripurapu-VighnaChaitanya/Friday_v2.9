@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friday AI — Next-Gen 3D Avatar Engine</title>
+  
+  <!-- Modern Typography and Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Three.js CDN Setup via Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="overlay">
+    <div class="loader-content">
+      <div class="spinner"></div>
+      <h2>Initializing Friday AI Engine...</h2>
+      <p id="loading-status">Loading 3D asset facecap.glb (0%)</p>
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Container -->
+  <main class="app-container">
+    
+    <!-- 3D Canvas Viewport -->
+    <div id="canvas-container">
+      <canvas id="avatar-canvas"></canvas>
+      
+      <!-- TOP BAR: Logo + Documentation -->
+      <div id="top-bar">
+          <!-- Center: Friday Logo + Name -->
+          <div id="friday-brand">
+              <img id="friday-logo" src="../../assets/friday_logo.png" alt="Friday AI" />
+              <span id="friday-name">F.R.I.D.A.Y.</span>
+          </div>
+
+          <!-- Right: Version badge -->
+          <div id="version-badge">v2.7</div>
+          
+          <!-- Left: Documentation Button -->
+          <button id="docs-btn" onclick="openDocs()" title="Command Guide">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span>COMMANDS</span>
+          </button>
+      </div>
+
+      <!-- 2D Particle Sphere Widget (Top Right) -->
+      <iframe src="../2d_widget/index.html" 
+              id="widget-2d-sphere" 
+              style="position:absolute; top:20px; right:20px; width:450px; height:450px; border:none; z-index:100; overflow:hidden; background:#000000;">
+      </iframe>
+
+      <!-- Quick Control Helpers -->
+      <div class="canvas-helpers" style="display:none;">
+        <span><i class="fa-solid fa-rotate"></i> Left-Click Drag: Rotate</span>
+        <span><i class="fa-solid fa-arrows-up-down-left-right"></i> Right-Click Drag: Pan</span>
+        <span><i class="fa-solid fa-magnifying-glass-plus"></i> Scroll: Zoom</span>
+      </div>
+    </div>
+
+    <!-- Right Sidebar - Control Hub -->
+    <section class="sidebar right-sidebar">
+
+      <!-- Preset Expressions / Emotions — Hamburger Menu -->
+      <div class="section-card emotion-menu-card">
+        <div class="emotion-menu-header" id="emotion-menu-toggle">
+          <div class="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <h3>Emotional Presets</h3>
+          <i class="fa-solid fa-chevron-down emotion-chevron" id="emotion-chevron"></i>
+        </div>
+        <div class="emotions-grid" id="emotions-panel">
+          <button class="btn-emotion active" data-emotion="neutral">
+            <i class="fa-regular fa-face-meh"></i> Neutral
+          </button>
+          <button class="btn-emotion" data-emotion="happy">
+            <i class="fa-regular fa-face-smile-beam"></i> Happy
+          </button>
+          <button class="btn-emotion" data-emotion="sad">
+            <i class="fa-regular fa-face-sad-tear"></i> Sad
+          </button>
+          <button class="btn-emotion" data-emotion="surprised">
+            <i class="fa-regular fa-face-surprise"></i> Surprised
+          </button>
+          <button class="btn-emotion" data-emotion="angry">
+            <i class="fa-regular fa-face-angry"></i> Angry
+          </button>
+          <button class="btn-emotion" data-emotion="thinking">
+            <i class="fa-solid fa-face-thinking"></i> Thinking
+          </button>
+        </div>
+      </div>
+
+      <!-- Friday AI State Display -->
+      <div class="section-card">
+        <h3>Friday Status</h3>
+        <div class="friday-state-display">
+          <div class="friday-state-icon" id="friday-state-icon">
+            <i class="fa-solid fa-circle-dot"></i>
+          </div>
+          <div class="friday-state-info">
+            <span class="friday-state-label" id="friday-state-label">OFFLINE</span>
+            <span class="friday-state-sub" id="friday-state-sub">Waiting for backend...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Log — Hacker Terminal Style -->
+      <div class="section-card session-log-card">
+        <div class="session-log-header">
+          <div class="session-log-title-row">
+            <span class="session-log-dot"></span>
+            <h3 class="session-log-title">SESSION LOG</h3>
+          </div>
+          <button class="session-clear-btn" id="session-clear-btn" title="Clear log">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+        <div class="session-log-terminal" id="session-log-terminal">
+          <div class="session-log-boot">
+            <span class="log-prefix">&gt;</span> <span class="log-boot-text">FRIDAY SYSTEM INITIALIZED...</span>
+          </div>
+          <div class="session-log-boot">
+            <span class="log-prefix">&gt;</span> <span class="log-boot-text">AWAITING INTERACTION...</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+  </main>
+
+  <!-- Friday Speech Overlay (Bottom Center) -->
+  <div id="friday-speech-overlay" class="friday-speech-overlay hidden">
+    <div class="friday-speech-content">
+      <span class="friday-speech-label">FRIDAY</span>
+      <p id="friday-speech-text" class="friday-speech-text"></p>
+    </div>
+  </div>
+
+  <!-- Error Modal -->
+  <div id="error-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <i class="fa-solid fa-triangle-exclamation modal-icon"></i>
+        <h2 id="error-title">System Error</h2>
+      </div>
+      <div class="modal-body">
+        <p id="error-message">An unexpected error has occurred.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-close-error" class="btn btn-primary">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core App Code -->
+  <script type="module" src="app.js?v=45"></script>
+  
+  <script>
+    function openDocs() {
+        // Open the command guide HTML in the default browser
+        const path = window.location.href.replace('frontend/3d_avatar/index.html', 'backend/friday_commands.html')
+                                          .replace('frontend\\3d_avatar\\index.html', 'backend\\friday_commands.html');
+        window.open(path, '_blank');
+    }
+  </script>
+</body>
+</html>

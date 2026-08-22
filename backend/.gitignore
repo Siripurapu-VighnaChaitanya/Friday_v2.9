@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.db
+friday-4069f-firebase-adminsdk-fbsvc-2df7994540.json
+.env

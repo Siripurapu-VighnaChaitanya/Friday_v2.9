@@ -1,0 +1,32 @@
+# Environments
+venv/
+backend/venv/
+.env
+backend/.env
+
+# Python Bytecode & Cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Firebase credentials & Secrets
+*.json
+!assets/*.json
+backend/friday-4069f-firebase-adminsdk-fbsvc-2df7994540.json
+
+# Local database & temp audio
+*.db
+backend/data/*.db
+*.mp3
+temp_*
+
+# Screenshots & logs
+screenshot_*.png
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

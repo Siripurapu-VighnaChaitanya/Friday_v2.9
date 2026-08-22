@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friday UI</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="ui-container">
+        <!-- Layer 1: Aurora Background Glow -->
+        <canvas id="auroraCanvas"></canvas>
+
+        <!-- Layer 2: Particle Sphere -->
+        <canvas id="particleCanvas"></canvas>
+
+        <!-- Layer 3: Glitch Transition Overlay -->
+        <div id="glitch-overlay"></div>
+
+        <!-- Layer 4: Audio Waveform at bottom -->
+        <canvas id="waveformCanvas"></canvas>
+
+    </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="particle_engine.js"></script>
+    <script src="app.js"></script>
+    <script>
+        function openDocs() {
+            // Open the command guide HTML in the default browser
+            const path = window.location.href.replace('frontend/2d_widget/index.html', 'backend/friday_commands.html')
+                                              .replace('frontend\\2d_widget\\index.html', 'backend\\friday_commands.html');
+            window.open(path, '_blank');
+        }
+    </script>
+</body>
+</html>
