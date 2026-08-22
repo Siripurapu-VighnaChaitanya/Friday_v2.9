@@ -30,7 +30,7 @@ def main_loop():
     # Give the 3D model an extra second to render smoothly before speaking
     time.sleep(1.5)
     
-    speak("Friday is running. Say hello friday to wake me up.")
+    speak("Friday is running. Say hello friday or clap 3 times to wake me up.")
     wait_for_speech()
 
     while True:
