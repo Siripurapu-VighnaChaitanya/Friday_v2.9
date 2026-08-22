@@ -3,9 +3,12 @@ import speech_recognition as sr
 import pyaudio
 import struct
 import time
+import threading
+
 from services.tts import IS_SPEAKING
 
 r = sr.Recognizer()
+r.dynamic_energy_threshold = False
 
 # ================= WAKE WORD CONFIG =================
 WAKE_PHRASES = [
@@ -24,71 +27,21 @@ def reset_wake_lock():
     global WAKE_LOCKED
     WAKE_LOCKED = False
 
-# ================= REAL-TIME CLAP DETECTOR =================
-class ClapDetector:
-    def __init__(self, min_peak=5000, min_interval=0.12, max_interval=1.2):
-        self.min_peak = min_peak
-        self.min_interval = min_interval
-        self.max_interval = max_interval
-        self.clap_count = 0
-        self.last_clap_time = 0
 
-    def process(self, peak, now=None):
-        if now is None:
-            now = time.time()
+# ================= CLAP BACKGROUND THREAD =================
+# Runs continuously in the background and sets a flag when 3 claps are heard.
+# This NEVER conflicts with speech_recognition's microphone usage.
 
-        # Reset if too much time passed since last clap (> 1.2s)
-        if self.clap_count > 0 and (now - self.last_clap_time) > self.max_interval:
-            self.clap_count = 0
+_clap_triggered = threading.Event()   # Set when 3 claps detected
+_clap_thread_active = False
 
-        if peak >= self.min_peak:
-            dt = now - self.last_clap_time
-            if dt < self.min_interval:
-                # Same single-clap reverberation, ignore
-                return False
-
-            if self.clap_count == 0:
-                self.clap_count = 1
-                self.last_clap_time = now
-                print("👏 [Clap 1/3 detected]")
-                return False
-            elif 0.12 <= dt <= self.max_interval:
-                self.clap_count += 1
-                self.last_clap_time = now
-                print(f"👏 [Clap {self.clap_count}/3 detected]")
-                if self.clap_count >= 3:
-                    self.clap_count = 0
-                    return True
-            else:
-                self.clap_count = 1
-                self.last_clap_time = now
-                print("👏 [Clap 1/3 reset]")
-                return False
-
-        return False
-
-# Persistent clap detector instance across loop cycles
-_clap_detector = ClapDetector()
-
-# ================= DUAL STREAMING WAKE LISTENER =================
-def listen_for_wake_word():
-    global LAST_WAKE_TIME, WAKE_LOCKED, _clap_detector
-
-    if WAKE_LOCKED:
-        return False
-
-    while IS_SPEAKING:
-        time.sleep(0.1)
-
-    now = time.time()
-    if now - LAST_WAKE_TIME < WAKE_COOLDOWN:
-        return False
-
-    # Audio stream parameters
+def _clap_listener_thread():
+    """Background thread that listens ONLY for 3 claps using a persistent PyAudio stream."""
     RATE = 16000
-    CHUNK = 1024  # ~64ms chunks
-    CYCLE_SECONDS = 3.0
-    NUM_CHUNKS = int((RATE / CHUNK) * CYCLE_SECONDS)
+    CHUNK = 1024  # ~64ms at 16kHz
+    MIN_PEAK = 5000
+    MIN_INTERVAL = 0.13    # 130ms minimum between claps
+    MAX_INTERVAL = 1.2     # 1.2s max between claps (reset if exceeded)
 
     pa = pyaudio.PyAudio()
     stream = None
@@ -101,73 +54,145 @@ def listen_for_wake_word():
             frames_per_buffer=CHUNK
         )
     except Exception as e:
-        print(f"Mic init error in wake listener: {e}")
-        if stream:
-            try:
-                stream.close()
-            except:
-                pass
+        print(f"[ClapDetector] Could not open mic stream: {e}")
         pa.terminate()
-        time.sleep(0.5)
-        return False
+        return
 
-    speech_frames = []
-    speaking_detected = False
-    silence_chunks = 0
+    clap_count = 0
+    last_clap_time = 0.0
+
+    print("[ClapDetector] Background clap thread started.")
+
+    while _clap_thread_active:
+        try:
+            data = stream.read(CHUNK, exception_on_overflow=False)
+        except Exception:
+            time.sleep(0.05)
+            continue
+
+        if IS_SPEAKING:
+            # Don't detect claps while Friday is speaking (avoid false triggers)
+            clap_count = 0
+            continue
+
+        samples = struct.unpack(f'<{CHUNK}h', data)
+        peak = max(abs(s) for s in samples)
+        now = time.time()
+
+        # --- Reset if too long since last clap ---
+        if clap_count > 0 and (now - last_clap_time) > MAX_INTERVAL:
+            clap_count = 0
+
+        # --- Detect a sharp transient ---
+        if peak >= MIN_PEAK:
+            dt = now - last_clap_time
+            if dt < MIN_INTERVAL:
+                continue   # Reverberation of same clap, ignore
+
+            if clap_count == 0:
+                clap_count = 1
+                last_clap_time = now
+                print("👏 [Clap 1/3]")
+            elif 0.13 <= dt <= MAX_INTERVAL:
+                clap_count += 1
+                last_clap_time = now
+                print(f"👏 [Clap {clap_count}/3]")
+                if clap_count >= 3:
+                    clap_count = 0
+                    print("⚡ 3 Claps detected! Waking up...")
+                    _clap_triggered.set()
+            else:
+                clap_count = 1
+                last_clap_time = now
+                print("👏 [Clap 1/3 (reset)]")
 
     try:
-        for _ in range(NUM_CHUNKS):
-            if IS_SPEAKING:
-                break
-
-            data = stream.read(CHUNK, exception_on_overflow=False)
-            samples = struct.unpack(f'<{CHUNK}h', data)
-            peak = max(abs(s) for s in samples)
-            now = time.time()
-
-            # 1️⃣ REAL-TIME CLAP CHECK (Immediate 0ms response!)
-            if _clap_detector.process(peak, now):
-                LAST_WAKE_TIME = now
-                WAKE_LOCKED = True
-                print("⚡ 3 Claps detected! Waking up...")
-                return True
-
-            # 2️⃣ SPEECH BUFFERING FOR WAKE PHRASES
-            if peak > 1500:
-                speaking_detected = True
-                speech_frames.append(data)
-                silence_chunks = 0
-            elif speaking_detected:
-                speech_frames.append(data)
-                silence_chunks += 1
-                # If ~450ms of silence after voice, proceed to speech recognition
-                if silence_chunks >= 7:
-                    break
-
-    except Exception as e:
+        stream.stop_stream()
+        stream.close()
+    except:
         pass
-    finally:
-        try:
-            stream.stop_stream()
-            stream.close()
-        except:
-            pass
-        pa.terminate()
+    pa.terminate()
+    print("[ClapDetector] Background clap thread stopped.")
 
-    # 3️⃣ SPEECH RECOGNITION (if speech was heard)
-    if speech_frames and len(speech_frames) >= 4:
-        try:
-            raw_audio = b''.join(speech_frames)
-            audio_data = sr.AudioData(raw_audio, RATE, 2)
-            text = r.recognize_google(audio_data, language="en-US").lower().strip()
 
-            if any(phrase in text for phrase in WAKE_PHRASES):
-                now = time.time()
-                LAST_WAKE_TIME = now
-                WAKE_LOCKED = True
-                print(f"Wake word detected: '{text}'")
-                return True
-        except:
-            pass
+def start_clap_detector():
+    """Start the persistent background clap detection thread. Call once at startup."""
+    global _clap_thread_active
+    _clap_thread_active = True
+    t = threading.Thread(target=_clap_listener_thread, daemon=True)
+    t.start()
+
+
+def stop_clap_detector():
+    global _clap_thread_active
+    _clap_thread_active = False
+
+
+# ================= WAKE WORD LISTENER =================
+def listen_for_wake_word():
+    """
+    Checks for wake-up trigger (clap OR speech).
+    Uses speech_recognition for voice and a background thread for claps.
+    Both run independently without interfering.
+    """
+    global LAST_WAKE_TIME, WAKE_LOCKED
+
+    if WAKE_LOCKED:
+        return False
+
+    while IS_SPEAKING:
+        time.sleep(0.1)
+
+    now = time.time()
+    if now - LAST_WAKE_TIME < WAKE_COOLDOWN:
+        return False
+
+    # --- 1. Check if background clap thread already triggered ---
+    if _clap_triggered.is_set():
+        _clap_triggered.clear()
+        LAST_WAKE_TIME = time.time()
+        WAKE_LOCKED = True
+        return True
+
+    # --- 2. Try voice wake word via speech_recognition ---
+    try:
+        with sr.Microphone() as source:
+            r.energy_threshold = 300
+            r.pause_threshold = 0.6
+            try:
+                audio = r.listen(source, timeout=2, phrase_time_limit=4)
+            except sr.WaitTimeoutError:
+                # While waiting for speech, also check for claps
+                if _clap_triggered.is_set():
+                    _clap_triggered.clear()
+                    LAST_WAKE_TIME = time.time()
+                    WAKE_LOCKED = True
+                    return True
+                return False
+
+        # Check clap flag one more time (may have triggered during recording)
+        if _clap_triggered.is_set():
+            _clap_triggered.clear()
+            LAST_WAKE_TIME = time.time()
+            WAKE_LOCKED = True
+            return True
+
+        # Try speech recognition
+        text = r.recognize_google(audio, language="en-US").lower().strip()
+        if any(phrase in text for phrase in WAKE_PHRASES):
+            LAST_WAKE_TIME = time.time()
+            WAKE_LOCKED = True
+            print(f"Wake word detected: '{text}'")
+            return True
+
+    except (sr.UnknownValueError, sr.RequestError):
+        # Check clap one last time on voice failure
+        if _clap_triggered.is_set():
+            _clap_triggered.clear()
+            LAST_WAKE_TIME = time.time()
+            WAKE_LOCKED = True
+            return True
+    except Exception:
+        pass
 
     return False

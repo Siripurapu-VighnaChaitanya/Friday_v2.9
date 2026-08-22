@@ -1,7 +1,7 @@
 # main.py
 import time
 
-from core.wake_word import listen_for_wake_word, reset_wake_lock
+from core.wake_word import listen_for_wake_word, reset_wake_lock, start_clap_detector
 from core.command_listener import listen_for_command
 from services.language_manager import choose_language
 from core.mode_manager import handle_query
@@ -30,6 +30,9 @@ def main_loop():
     # Give the 3D model an extra second to render smoothly before speaking
     time.sleep(1.5)
     
+    # Start background clap detection thread ONCE (runs independently of speech recognition)
+    start_clap_detector()
+
     speak("Friday is running. Say hello friday or clap 3 times to wake me up.")
     wait_for_speech()
 
