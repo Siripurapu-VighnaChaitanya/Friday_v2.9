@@ -46,14 +46,27 @@ def speak(text, lang="en"):
     if not text:
         return
 
-    # 🛡️ CODE SAFETY GUARD
+    # 🛡️ CODE & MARKDOWN SAFETY GUARDS
     # Automatically strip anything starting from triple backticks to the end
-    # This prevents reading unclosed blocks or preamble text
     if "```" in text:
         text = text.split("```")[0].strip()
         if not text:
-            text = "I have saved the code to your desktop."
+            text = "I have saved the code to your desktop, sir."
     
+    # Strip any dangling tool tags
+    for tag in ["[CODE]", "[VISION]", "[SEARCH]", "[WEATHER]", "[NEWS]", "[MAPS]", "[CURRENCY]", "[REMINDER]", "[SYSTEM]", "[WHATSAPP]"]:
+        text = text.replace(tag, "")
+
+    # Clean markdown formatting so TTS does not read "asterisk asterisk", "hash", etc.
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)       # **bold** -> bold
+    text = re.sub(r'\*(.*?)\*', r'\1', text)           # *italic* -> italic
+    text = re.sub(r'__(.*?)__', r'\1', text)           # __bold__ -> bold
+    text = re.sub(r'_(.*?)_', r'\1', text)             # _italic_ -> italic
+    text = re.sub(r'~~(.*?)~~', r'\1', text)           # ~~strike~~ -> strike
+    text = re.sub(r'#+\s*', '', text)                  # ### Header -> Header
+    text = re.sub(r'^\s*[-*•+]\s+', '', text, flags=re.MULTILINE) # Bullets
+    text = text.replace('*', '').replace('`', '').replace('~', '').replace('#', '')
+
     # Heuristic for naked code (missing backticks)
     lines = text.split("\n")
     clean_lines = []
@@ -64,10 +77,11 @@ def speak(text, lang="en"):
             break
         clean_lines.append(line)
     
-    text = "\n".join(clean_lines).replace("[CODE]", "").strip()
+    text = "\n".join(clean_lines).strip()
+    text = re.sub(r'[ \t]+', ' ', text).strip()
     
     if not text:
-        text = "I have saved the code to your desktop."
+        text = "I have saved the code to your desktop, sir."
 
     print("Friday:", text)
 
