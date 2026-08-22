@@ -36,74 +36,32 @@ def main_loop():
     speak("Friday is running. Say hello friday or clap 3 times to wake me up.")
     wait_for_speech()
 
+    # ⚡ TEST MODE: Skip wake word + secret code + language selection
+    # Jump straight into active English mode for fast WhatsApp call testing
+    ACTIVE = True
+    LANGUAGE = "en"
+    speak("Test mode. I am ready, sir. You can speak now.")
+    wait_for_speech()
+
     while True:
 
-        # ============== IDLE MODE ==============
+        # ============== IDLE MODE (DISABLED IN TEST MODE) ==============
         if not ACTIVE:
             print("Listening for wake word...")
             wake_detected = listen_for_wake_word()
 
             if not wake_detected:
-                time.sleep(0.5) # Stability pause
+                time.sleep(0.5)
                 continue
             print("Wake word detected")
 
             speak("Hello Chaitanya")
-            
-            # 🛡️ SECURITY CHECK
-            authenticated = False
-            attempts = 3
-            
-            speak("Please say the secret code.") # Initial prompt
- 
-            while attempts > 0:
-                wait_for_speech()
-                secret_code = listen_for_command("en") 
-                
-                if not secret_code:
-                    # If silent or echo-filtered, keep listening WITHOUT speaking.
-                    # This breaks the "echo feedback loop".
-                    continue
-                    
-                print(f"Code received: {secret_code}")
-                
-                # Clean the code: remove spaces and leading/trailing noise
-                clean_code = secret_code.replace(" ", "").strip()
-                
-                # Logic to handle "0010" variations strictly
-                valid_patterns = [
-                    "0010", "zerozeroonezero", "doublezeroonezero", 
-                    "zerozeroten", "00ten", "oo10", "doublezeroone", 
-                    "zerozeroone", "001", "ooone", "oooneten"
-                ]
-                
-                # Use exact matching to ensure "00011" or "001023" doesn't pass
-                if clean_code in valid_patterns:
-                    authenticated = True
-                    break
-                else:
-                    attempts -= 1
-                    if attempts > 0:
-                        speak(f"Wrong code. {attempts} attempts left. Please try again.")
-            
-            if not authenticated:
-                speak("Access denied. Going back to sleep.")
-                ACTIVE = False
-                reset_wake_lock()
-                continue
-                
             speak("Access granted, sir.")
-            # Added a small delay after "Access granted" to clear audio buffer
             time.sleep(0.4)
 
-            LANGUAGE = choose_language()
+            LANGUAGE = "en"
             ACTIVE = True
-            ready_msg = {
-                "en": "I am ready, sir. You can speak now.",
-                "te": "నేను సిద్ధంగా ఉన్నాను సార్. మీరు ఇప్పుడు మాట్లాడవచ్చు.",
-                "hi": "मैं तैयार हूँ सर। आप अभी बोल सकते हैं।"
-            }
-            speak(ready_msg.get(LANGUAGE, ready_msg["en"]), LANGUAGE)
+            speak("I am ready, sir. You can speak now.", LANGUAGE)
             continue
 
         # ============== ACTIVE MODE ==============
