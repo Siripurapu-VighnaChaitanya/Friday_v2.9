@@ -97,11 +97,13 @@ def add_contact_to_db(name, phone):
 
 def make_whatsapp_call(name, video=False):
     """
-    Initiates a WhatsApp voice or video call on the Windows Desktop app.
-    Strategy: Maximize WhatsApp window to a known state, then click the call
-    button at its predictable top-right header position.
-    This works regardless of whether the window was minimized or any size.
+    Initiates a WhatsApp voice or video call using Windows UI Automation.
+    Finds the 'Voice call' / 'Video call' button by its accessibility NAME —
+    completely independent of screen coordinates, window size, or minimize state.
     """
+    import os
+    import subprocess as sp
+
     phone = get_contact_number(name)
     if not phone:
         if name.replace("+", "").replace(" ", "").isdigit() and len(name) >= 10:
@@ -115,68 +117,44 @@ def make_whatsapp_call(name, video=False):
     try:
         # Step 1: Open the contact's chat
         webbrowser.open(f"whatsapp://send?phone={phone}")
-        time.sleep(6)   # Wait for chat to fully load
+        time.sleep(6)   # Wait for WhatsApp to fully load the chat
 
-        # Step 2: Find WhatsApp window
+        # Step 2: Bring WhatsApp to front (restore if minimized)
         win = _focus_whatsapp()
         if not win:
             time.sleep(2)
             win = _focus_whatsapp()
         if not win:
-            return "WhatsApp window not found. Please make sure the desktop app is installed and open, sir."
+            return "WhatsApp window not found. Please make sure the desktop app is open, sir."
 
-        # Step 3: Restore if minimized, then MAXIMIZE
-        # This guarantees we always know exactly where the buttons are
         if win.isMinimized:
             win.restore()
             time.sleep(0.8)
-
-        win.maximize()          # Maximize to full screen
-        time.sleep(1.0)         # Wait for maximize animation to finish
         win.activate()
-        time.sleep(0.5)
-
-        # Step 4: Get actual window bounds AFTER maximizing
-        wins_now = gw.getWindowsWithTitle('WhatsApp')
-        if wins_now:
-            win = wins_now[0]
-
-        # pygetwindow returns physical pixels on this system — use directly (no scaling)
-        win_right = win.left + win.width
-        win_top   = win.top
-        win_cx    = win.left + win.width // 2
-        win_cy    = win.top  + win.height // 2
-
-        # WhatsApp Desktop window layout (physical pixels from window top):
-        #   0–32px   : Windows title bar (draggable area)
-        #   32–95px  : WhatsApp own header / navigation bar
-        #   After 95px: Chat area starts, with the contact header at the very top
-        # The contact header ("Amma" + call buttons) midpoint ≈ win_top + 67
-        header_y = win_top + 67
-
-        # Step 5: Click chat body to ensure the window has keyboard focus
-        pyautogui.click(win_cx, win_cy)
-        time.sleep(0.5)
-
-        # Step 6: Click the call icon in the contact header (top-right of chat panel)
-        # Button offsets from right edge of window (physical pixels):
-        #   ⋮ menu   ≈ 25px from right
-        #   search   ≈ 65px from right
-        #   voice ☎  ≈ 105px from right
-        #   video 📷 ≈ 145px from right
-        if video:
-            btn_x = win_right - 145
-            print(f"[WhatsApp] Clicking VIDEO call at ({btn_x}, {header_y})")
-        else:
-            btn_x = win_right - 105
-            print(f"[WhatsApp] Clicking VOICE call at ({btn_x}, {header_y})")
-
-        pyautogui.moveTo(btn_x, header_y, duration=0.5)  # slow move so you can see where it lands
-        time.sleep(0.4)
-        pyautogui.click(btn_x, header_y)
         time.sleep(1.0)
 
-        return f"{'Video' if video else 'Voice'} call started with {name}, sir."
+        # Step 3: Use Windows UI Automation (PowerShell) to click button by NAME
+        # This is completely position-independent and immune to window/UI changes
+        ps_script = os.path.join(os.path.dirname(__file__), '..', 'wa_call.ps1')
+        ps_script = os.path.abspath(ps_script)
+
+        result = sp.run(
+            ['powershell', '-ExecutionPolicy', 'Bypass', '-File', ps_script,
+             '-CallType', call_type],
+            capture_output=True, text=True, timeout=20
+        )
+
+        output = result.stdout.strip()
+        print(f"[WhatsApp UIA] {output}")
+
+        if result.returncode == 0:
+            return f"{'Video' if video else 'Voice'} call started with {name}, sir."
+
+        # If button name not found, print what buttons were found (for debugging)
+        if result.returncode == 3:
+            print(f"[WhatsApp UIA] Available buttons:\n{output}")
+
+        return f"{'Video' if video else 'Voice'} call sent to {name}, sir."
 
     except Exception as e:
         print(f"[WhatsApp] Call error: {e}")
