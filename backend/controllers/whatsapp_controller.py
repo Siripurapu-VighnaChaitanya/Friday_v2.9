@@ -97,12 +97,16 @@ def add_contact_to_db(name, phone):
 
 def make_whatsapp_call(name, video=False):
     """
-    Initiates a WhatsApp voice or video call using Windows UI Automation.
-    Finds the 'Voice call' / 'Video call' button by its accessibility NAME —
-    completely independent of screen coordinates, window size, or minimize state.
+    Initiates a WhatsApp voice or video call.
+    Strategy:
+      1. Open the contact chat via whatsapp://send
+      2. Bring WhatsApp to foreground using win32gui (NO mouse click on buttons)
+      3. Click once in the SAFE CENTRE of the chat panel (large area, never misses)
+      4. Press Escape to clear the text input focus
+      5. Send Ctrl+Shift+C (voice) or Ctrl+Shift+V (video) — official WA Desktop shortcuts
     """
-    import os
-    import subprocess as sp
+    import win32gui
+    import win32con
 
     phone = get_contact_number(name)
     if not phone:
@@ -117,44 +121,53 @@ def make_whatsapp_call(name, video=False):
     try:
         # Step 1: Open the contact's chat
         webbrowser.open(f"whatsapp://send?phone={phone}")
-        time.sleep(6)   # Wait for WhatsApp to fully load the chat
+        time.sleep(6)   # Wait for chat to fully load
 
-        # Step 2: Bring WhatsApp to front (restore if minimized)
-        win = _focus_whatsapp()
-        if not win:
-            time.sleep(2)
+        # Step 2: Bring WhatsApp to front WITHOUT any mouse clicking
+        # Use win32gui directly so we don't accidentally click on anything
+        hwnd = win32gui.FindWindow(None, 'WhatsApp')
+        if hwnd:
+            if win32gui.IsIconic(hwnd):                   # Minimized?
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                time.sleep(0.8)
+            win32gui.SetForegroundWindow(hwnd)
+            time.sleep(1.0)
+        else:
+            # Fallback to pygetwindow
             win = _focus_whatsapp()
-        if not win:
-            return "WhatsApp window not found. Please make sure the desktop app is open, sir."
+            if not win:
+                return "WhatsApp window not found. Please make sure the app is open, sir."
 
-        if win.isMinimized:
-            win.restore()
-            time.sleep(0.8)
-        win.activate()
+        # Step 3: Get window geometry for a SAFE click in the chat message area
+        wins = gw.getWindowsWithTitle('WhatsApp')
+        if not wins:
+            return "WhatsApp window lost after focus, sir."
+        w = wins[0]
+
+        # Click at 65% of width (right panel / chat area) x 55% of height (message area)
+        # This is a LARGE, reliable area — never lands on sidebar, header, or input box
+        safe_x = w.left + int(w.width  * 0.65)
+        safe_y = w.top  + int(w.height * 0.55)
+        print(f"[WhatsApp] Clicking chat body at ({safe_x}, {safe_y}) to set focus...")
+        pyautogui.click(safe_x, safe_y)
+        time.sleep(0.5)
+
+        # Step 4: Press Escape to exit the message text input box focus
+        pyautogui.press('escape')
+        time.sleep(0.4)
+
+        # Step 5: Send the official WhatsApp Desktop keyboard shortcut
+        #   Ctrl+Shift+C = Voice call
+        #   Ctrl+Shift+V = Video call
+        if video:
+            print("[WhatsApp] Sending Ctrl+Shift+V (video call shortcut)...")
+            pyautogui.hotkey('ctrl', 'shift', 'v')
+        else:
+            print("[WhatsApp] Sending Ctrl+Shift+C (voice call shortcut)...")
+            pyautogui.hotkey('ctrl', 'shift', 'c')
+
         time.sleep(1.0)
-
-        # Step 3: Use Windows UI Automation (PowerShell) to click button by NAME
-        # This is completely position-independent and immune to window/UI changes
-        ps_script = os.path.join(os.path.dirname(__file__), '..', 'wa_call.ps1')
-        ps_script = os.path.abspath(ps_script)
-
-        result = sp.run(
-            ['powershell', '-ExecutionPolicy', 'Bypass', '-File', ps_script,
-             '-CallType', call_type],
-            capture_output=True, text=True, timeout=20
-        )
-
-        output = result.stdout.strip()
-        print(f"[WhatsApp UIA] {output}")
-
-        if result.returncode == 0:
-            return f"{'Video' if video else 'Voice'} call started with {name}, sir."
-
-        # If button name not found, print what buttons were found (for debugging)
-        if result.returncode == 3:
-            print(f"[WhatsApp UIA] Available buttons:\n{output}")
-
-        return f"{'Video' if video else 'Voice'} call sent to {name}, sir."
+        return f"{'Video' if video else 'Voice'} call started with {name}, sir."
 
     except Exception as e:
         print(f"[WhatsApp] Call error: {e}")
